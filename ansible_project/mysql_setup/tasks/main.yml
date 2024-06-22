@@ -1,0 +1,85 @@
+# mysql_setup/tasks/main.yml
+- name: Update apt cache
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400 # One day
+
+- name: Install MySQL server
+  apt:
+    name: mysql-server
+    state: present
+
+# this is required for some reason
+- name: Install PyMySQL library
+  apt:
+    name: python3-pymysql 
+    state: present
+
+- name: Start MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Change Root password
+  mysql_user:
+    login_user: root
+    login_password: "test"
+    name: root
+    host: "localhost"
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    password: "test"
+    priv: '*.*:ALL,GRANT'
+    check_implicit_admin: true
+
+- name: Upload .my.cnf file
+  template:
+    src: .my.cnf
+    dest: /root/.my.cnf
+    owner: root
+    mode: 0600
+  
+
+#- name: Secure MySQL installation
+#  expect:
+#    command: mysql_secure_installation
+#    responses:
+#      'Enter current password for root (enter for none):': ''
+#      'Set root password?': 'y'
+#      'New password:': 'test'
+#      'Re-enter new password:': 'test'
+#      'Remove anonymous users?': 'y'
+#      'Disallow root login remotely?': 'n'
+#      'Remove test database and access to it?': 'y'
+#      'Reload privilege tables now?': 'y'
+#      'Press y|Y for Yes, any other key for No:': 'y'
+#      'Please enter 0 = LOW, 1 = MEDIUM and 2 = STRONG:': '0'
+#      'Enter password for user root: ': 'test'
+
+- name: Create MySQL user
+  community.mysql.mysql_user:
+    login_user: "root"
+    login_password: "test"
+    name: test
+    password: test
+    priv: "*.*:ALL,GRANT"
+    host: "%"
+    state: present
+
+- name: creating db
+  mysql_db:
+    name: "testdb"
+    state: present
+
+- name: Enable remote login to mysql
+  lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 0.0.0.0'
+    backup: yes
+    
+- name: Restart mysql
+  service:
+    name: mysql
+    state: restarted

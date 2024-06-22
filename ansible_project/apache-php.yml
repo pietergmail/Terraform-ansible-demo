@@ -1,0 +1,6 @@
+# Your playbook using the role
+- name: Install Apache and PHP, Download PHP File
+  hosts: webservers
+  become: true
+  roles:
+    - apache_php_setup

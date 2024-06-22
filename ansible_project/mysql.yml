@@ -1,0 +1,6 @@
+# Your playbook using the role
+- name: Install MySQL and create a database
+  hosts: database
+  become: yes
+  roles:
+    - mysql_setup

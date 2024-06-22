@@ -1,0 +1,33 @@
+# apache_php_setup/tasks/main.yml
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install Apache
+  apt:
+    name: apache2
+    state: present
+
+- name: Install PHP and required modules
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - php
+    - libapache2-mod-php
+    - php-mysql
+
+- name: Copy PHP file
+  copy:
+    src: ../connect.php
+    dest: /var/www/html/index.php
+
+- name: Remove default index.html file
+  file:
+    path: "/var/www/html/index.html"
+    state: absent
+
+- name: Restart Apache
+  service:
+    name: apache2
+    state: restarted

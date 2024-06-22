@@ -1,0 +1,29 @@
+---
+- name: Remove Apache, PHP, and PHP File
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Stop Apache service
+      service:
+        name: apache2
+        state: stopped
+      ignore_errors: yes  # Ignore errors if Apache is not installed
+
+    - name: Remove Apache and PHP packages
+      apt:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - apache2
+
+    - name: Remove default HTML directory
+      file:
+        path: "/var/www/html"
+        state: absent
+
+    - name: Start Apache service
+      service:
+        name: apache2
+        state: started
+      ignore_errors: yes  # Ignore errors if Apache is not installed
